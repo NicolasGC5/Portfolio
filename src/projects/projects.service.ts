@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 
@@ -12,31 +12,54 @@ interface Project {
 
 @Injectable()
 export class ProjectsService {
-  create(createProjectDto: CreateProjectDto) {
-    return 'This action adds a new project';
+  private projects: Project[] = [];
+
+  create(createProjectDto: CreateProjectDto): Project {
+    const id =
+      this.projects.length > 0
+        ? Math.max(...this.projects.map((p) => p.id)) + 1
+        : 1;
+
+    const title: string = createProjectDto.title || '';
+    const description: string = createProjectDto.description || '';
+    const stack: string[] = createProjectDto.stack || [];
+    const status: string = createProjectDto.status || 'draft';
+
+    const newProject: Project = {
+      id,
+      title,
+      description,
+      stack,
+      status,
+    };
+
+    this.projects.push(newProject);
+    return newProject;
   }
 
   findAll(): Project[] {
-    return [
-      {
-        id: 1,
-        title: 'Dog API',
-        description: 'REST API con CRUD completo',
-        stack: ['NestJS', 'TypeScript', 'PostgreSQL'],
-        status: 'in-progress',
-      },
-    ];
+    return [...this.projects];
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} project`;
+  findOne(id: number): Project {
+    const project = this.projects.find((p) => p.id === id);
+    if (!project) {
+      throw new NotFoundException(`Project with id ${id} not found`);
+    }
+    return project;
   }
 
-  update(id: number, updateProjectDto: UpdateProjectDto) {
-    return `This action updates a #${id} project`;
+  update(id: number, updateProjectDto: UpdateProjectDto): Project {
+    const project = this.findOne(id);
+    const updatedProject: Project = Object.assign(project, updateProjectDto);
+    return updatedProject;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} project`;
+  remove(id: number): void {
+    const idx = this.projects.findIndex((p) => p.id === id);
+    if (idx === -1) {
+      throw new NotFoundException(`Project with id ${id} not found`);
+    }
+    this.projects.splice(idx, 1);
   }
 }
