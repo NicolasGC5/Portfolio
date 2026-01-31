@@ -2,41 +2,34 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
-
-interface Project {
-  id: number;
-  title: string;
-  description: string;
-  stack: string[];
-  status: string;
-}
+import { Project } from './entities/project.entity';
 
 @Controller('projects')
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) { }
 
   @Post()
-  create(@Body() createProjectDto: CreateProjectDto): Project {
+  create(@Body() createProjectDto: CreateProjectDto): Promise<Project> {
     return this.projectsService.create(createProjectDto);
   }
 
   @Get()
-  findAll(): Project[] {
+  findAll(): Promise<Project[]> {
     return this.projectsService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Project {
+  findOne(@Param('id') id: string): Promise<Project> {
     return this.projectsService.findOne(Number(id));
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto): Project {
+  update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto): Promise<Project> {
     return this.projectsService.update(Number(id), updateProjectDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string): void {
+  remove(@Param('id') id: string): Promise<void> {
     return this.projectsService.remove(Number(id));
   }
 }
